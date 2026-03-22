@@ -38,3 +38,6 @@ out/
 
 ### Redis ###
 dump.rdb
+
+### Claude ###
+CLAUDE.md
