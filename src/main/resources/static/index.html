@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Redis Session 테스트</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+        h1 { font-size: 1.5em; }
+        .section { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input { padding: 8px; width: 200px; margin-bottom: 10px; }
+        button { padding: 8px 16px; cursor: pointer; margin-right: 5px; }
+        #result { margin-top: 20px; padding: 15px; background: #f5f5f5; border-radius: 8px; white-space: pre-wrap; font-family: monospace; display: none; }
+    </style>
+</head>
+<body>
+    <h1>Redis Session 테스트</h1>
+
+    <div class="section">
+        <h3>세션에 값 저장</h3>
+        <label>Key</label>
+        <input type="text" id="setKey" placeholder="name">
+        <label>Value</label>
+        <input type="text" id="setValue" placeholder="makjuho">
+        <br>
+        <button onclick="setSession()">저장</button>
+    </div>
+
+    <div class="section">
+        <h3>세션 값 조회</h3>
+        <label>Key</label>
+        <input type="text" id="getKey" placeholder="name">
+        <br>
+        <button onclick="getSession()">조회</button>
+    </div>
+
+    <div class="section">
+        <button onclick="deleteSession()">세션 삭제</button>
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+        const resultDiv = document.getElementById('result');
+
+        function showResult(label, data) {
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = `[${label}]\n${JSON.stringify(data, null, 2)}`;
+        }
+
+        function showError(label, status) {
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = `[${label}] HTTP ${status}`;
+        }
+
+        async function setSession() {
+            const key = document.getElementById('setKey').value;
+            const value = document.getElementById('setValue').value;
+            const res = await fetch('/session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key, value })
+            });
+            if (res.ok) showResult('저장 완료', await res.json());
+            else showError('저장 실패', res.status);
+        }
+
+        async function getSession() {
+            const key = document.getElementById('getKey').value;
+            const res = await fetch(`/session?key=${encodeURIComponent(key)}`);
+            if (res.ok) showResult('조회 결과', await res.json());
+            else showError('조회 실패 (세션 없음)', res.status);
+        }
+
+        async function deleteSession() {
+            const res = await fetch('/session', { method: 'DELETE' });
+            if (res.ok) showResult('세션 삭제 완료', { status: res.status });
+            else showError('삭제 실패', res.status);
+        }
+    </script>
+</body>
+</html>
